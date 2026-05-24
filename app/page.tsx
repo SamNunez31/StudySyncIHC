@@ -1,12 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowRight, LogIn } from "lucide-react";
 import { AuthForm } from "@/components/AuthForm";
+import { supabase } from "@/lib/supabase";
 
 export default function Home() {
   const [authOpen, setAuthOpen] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user) {
+        setHasSession(true);
+        supabase.from("profiles").select("role").eq("id", data.session.user.id).single()
+          .then(({ data: profile }) => {
+            if (profile?.role === "tutor") router.replace("/tutor/dashboard");
+            else router.replace("/tutores");
+          });
+      }
+    });
+  }, []);
+
+  if (hasSession) return null;
 
   return (
     <main className="home-landing">

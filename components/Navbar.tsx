@@ -78,7 +78,7 @@ export function Navbar() {
           <span>StudySync</span>
         </Link>
         <div className="nav-links">
-          {!hideTutorsLink && (
+          {!hideTutorsLink && profile?.role !== "tutor" && (
             <Link href="/tutores" aria-current={isCurrentPath("/tutores") ? "page" : undefined}>
               <Search size={18} aria-hidden="true" /> Tutores
             </Link>
@@ -90,7 +90,7 @@ export function Navbar() {
           )}
           {profile?.role === "tutor" && (
             <Link href="/tutor/dashboard" aria-current={isCurrentPath("/tutor/dashboard") ? "page" : undefined}>
-              <LayoutDashboard size={18} aria-hidden="true" /> Dashboard tutor
+              <LayoutDashboard size={18} aria-hidden="true" /> Mis solicitudes
             </Link>
           )}
           {profile && (

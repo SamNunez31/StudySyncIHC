@@ -206,17 +206,29 @@ export default function MyRequestsPage() {
                 )}
 
                 <div className="card-actions request-actions-row">
-                  {canCancel && (
-                    <button
-                      type="button"
-                      onClick={() => setCancelTarget(solicitud)}
-                      aria-label={`Cancelar solicitud con ${tutorName}`}
-                      className="btn danger"
-                      style={{ gap: "8px", padding: "8px 16px", fontSize: "0.88rem" }}
-                    >
-                      Cancelar solicitud
-                    </button>
-                  )}
+                {canCancel && (
+                  <button
+                    type="button"
+                    onClick={() => setCancelTarget(solicitud)}
+                    aria-label={`Cancelar solicitud con ${tutorName}`}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "8px 16px",
+                      borderRadius: "8px",
+                      border: 0,
+                      background: "#b91c1c",
+                      color: "#ffffff",
+                      fontWeight: 700,
+                      fontSize: "0.88rem",
+                      cursor: "pointer",
+                      transition: "all 0.18s ease"
+                    }}
+                  >
+                    Cancelar solicitud
+                  </button>
+                )}
                   {canReview && (
                     <Link
                       href={`/resena/${solicitud.id}`}
@@ -225,11 +237,11 @@ export default function MyRequestsPage() {
                         display: "inline-flex",
                         alignItems: "center",
                         gap: "6px",
-                        padding: "8px 20px",
+                        padding: "8px 16px",
                         borderRadius: "8px",
-                        border: "1.5px solid #C4B5FD",
-                        background: "#EDE9FE",
-                        color: "#4C1D95",
+                        border: 0,
+                        background: "linear-gradient(135deg, #4932dc, #7423d6)",
+                        color: "#ffffff",
                         fontWeight: 700,
                         fontSize: "0.88rem",
                         textDecoration: "none",

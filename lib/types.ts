@@ -60,6 +60,7 @@ export type Solicitud = {
   motivo_cancelacion: string | null;
   created_at: string | null;
   expira_at: string | null;
+  mensaje: string | null;
 };
 
 export type Resena = {

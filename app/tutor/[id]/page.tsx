@@ -198,7 +198,8 @@ export default function TutorProfilePage() {
       materia_id: selectedExperience.materia_id,
       fecha_reunion: selectedSlot.date.toISOString(),
       estado: "pendiente",
-      expira_at: expiraAt.toISOString()
+      expira_at: expiraAt.toISOString(),
+      mensaje: requestMessage.trim() || null
     });
     setSending(false);
     if (insertError) {
