@@ -2,7 +2,7 @@
   --bg: #f5f7fb;
   --surface: #ffffff;
   --ink: #172033;
-  --muted: #667085;
+  --muted: #4B5563;
   --line: #d9e0ea;
   --primary: #4932dc;
   --primary-dark: #3322b7;
@@ -817,9 +817,10 @@ textarea {
 .requests-page .status.completada,
 .tutor-dashboard-page .status.finalizada,
 .tutor-dashboard-page .status.completada {
-  color: #4C1D95;
-  background: #EDE9FE;
-  border: 1px solid #DDD6FE;
+  color: #3730a3;
+  background: #C7D2FE;
+  border: 1px solid #818CF8;
+  font-weight: 700;
 }
 
 .request-note {
@@ -954,8 +955,13 @@ textarea {
 }
 
 .cancel-modal-box {
-  border-radius: 18px;
-  box-shadow: 0 26px 70px rgba(6, 3, 30, 0.2);
+  border-radius: 24px;
+  box-shadow: 0 30px 80px rgba(6, 3, 30, 0.25);
+  max-width: 420px;
+  width: 100%;
+  padding: 2rem;
+  border: 1px solid #EDE9FE;
+  background: radial-gradient(circle at top left, rgba(73,50,220,0.06), transparent 14rem), #ffffff;
 }
 
 .loader {
@@ -1040,7 +1046,8 @@ textarea {
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(15, 23, 42, 0.42);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(8px);
 }
 
 .modal-box {
@@ -1307,10 +1314,11 @@ textarea {
 }
 
 .profile-calendar-cell.available {
-  color: #065f46;
-  background: #dffbf0;
-  border-color: #a7f3d0;
-  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.16);
+  color: #064E3B;
+  background: #6EE7B7;
+  border-color: #34D399;
+  font-weight: 800;
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.3);
 }
 
 .tutor-review {
@@ -1895,7 +1903,7 @@ textarea {
 .home-hero p {
   max-width: 480px;
   margin: 28px 0 34px;
-  color: rgba(255, 255, 255, 0.92);
+  color: #ffffff;
   font-size: 1.15rem;
   line-height: 1.75;
   opacity: 0;
@@ -2734,7 +2742,7 @@ body:has(.study-auth-shell) .nav-actions {
 
 .study-input-shell input::placeholder,
 .study-input-shell textarea::placeholder {
-  color: #a19aae;
+  color: #6B7280;
 }
 
 .study-input-shell input {
@@ -3124,9 +3132,8 @@ body:has(.study-auth-shell) .nav-actions {
   display: grid;
   place-items: center;
   border-radius: 16px;
-  color: #ffffff;
-  background: linear-gradient(135deg, #fee2e2, #f5f3ff);
   color: #b91c1c;
+  background: linear-gradient(135deg, #fee2e2, #f5f3ff);
   box-shadow: 0 16px 34px rgba(185, 28, 28, 0.14);
 }
 
