@@ -81,13 +81,14 @@ export function Navbar() {
               <LayoutDashboard size={18} aria-hidden="true" /> Dashboard tutor
             </Link>
           )}
+          {profile && (
+            <Link href="/mi-perfil" aria-current={isCurrentPath("/mi-perfil") ? "page" : undefined}>
+              <UserRound size={18} aria-hidden="true" /> Mi perfil
+            </Link>
+          )}
         </div>
         {profile && (
           <div className="nav-actions">
-            <Link href="/mi-perfil" className="icon-link" aria-current={isCurrentPath("/mi-perfil") ? "page" : undefined}>
-              <UserRound size={18} aria-hidden="true" />
-              <span>Mi Perfil</span>
-            </Link>
             <button className="logout-button" type="button" onClick={() => setConfirmSignOut(true)} aria-label="Cerrar sesión" title="Cerrar sesión">
               <LogOut size={18} aria-hidden="true" />
             </button>

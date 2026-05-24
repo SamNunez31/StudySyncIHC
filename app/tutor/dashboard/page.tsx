@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AccessDenied, LoadingState } from "@/components/AccessDenied";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTime } from "@/lib/constants";
@@ -15,6 +15,7 @@ export default function TutorDashboardPage() {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [students, setStudents] = useState<Profile[]>([]);
   const [materias, setMaterias] = useState<Materia[]>([]);
+  const [statusFilter, setStatusFilter] = useState("todos");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -27,6 +28,21 @@ export default function TutorDashboardPage() {
       setError(error || catalogs.error ? genericActionError : "");
     });
   }, [auth.userId]);
+
+  const summary = {
+    pendiente: solicitudes.filter((item) => item.estado === "pendiente").length,
+    aceptada: solicitudes.filter((item) => item.estado === "aceptada").length,
+    rechazadasCanceladas: solicitudes.filter((item) => item.estado === "rechazada" || item.estado === "cancelada").length,
+    finalizadas: solicitudes.filter((item) => item.estado === "finalizada" || item.estado === "completada").length
+  };
+
+  const filteredSolicitudes = useMemo(() => {
+    if (statusFilter === "pendiente") return solicitudes.filter((item) => item.estado === "pendiente");
+    if (statusFilter === "aceptada") return solicitudes.filter((item) => item.estado === "aceptada");
+    if (statusFilter === "rechazadas") return solicitudes.filter((item) => item.estado === "rechazada" || item.estado === "cancelada");
+    if (statusFilter === "finalizada") return solicitudes.filter((item) => item.estado === "finalizada" || item.estado === "completada");
+    return solicitudes;
+  }, [solicitudes, statusFilter]);
 
   if (auth.loading) return <LoadingState />;
   if (auth.forbidden) return <AccessDenied />;
@@ -50,35 +66,74 @@ export default function TutorDashboardPage() {
   }
 
   return (
-    <main className="page">
-      <div className="stack">
+    <main className="page tutor-dashboard-page">
+      <div className="stack tutor-dashboard-heading">
         <span className="eyebrow">Dashboard tutor</span>
         <h1>Solicitudes recibidas</h1>
       </div>
-      {error && <p className="error">{error}</p>}
-      <section className="stack">
+      {error && <p className="error" aria-live="assertive">{error}</p>}
+      <section className="requests-summary" aria-label="Resumen de solicitudes recibidas por estado" aria-live="polite">
+        <article className="request-stat-card pending">
+          <strong>{summary.pendiente}</strong>
+          <span>Pendientes</span>
+        </article>
+        <article className="request-stat-card accepted">
+          <strong>{summary.aceptada}</strong>
+          <span>Aceptadas</span>
+        </article>
+        <article className="request-stat-card rejected">
+          <strong>{summary.rechazadasCanceladas}</strong>
+          <span>Rechazadas / Canceladas</span>
+        </article>
+        <article className="request-stat-card finished">
+          <strong>{summary.finalizadas}</strong>
+          <span>Completadas / Finalizadas</span>
+        </article>
+      </section>
+      <div className="request-filter-bar" aria-label="Filtrar solicitudes recibidas por estado">
+        {[
+          ["todos", "Todos"],
+          ["pendiente", "Pendientes"],
+          ["aceptada", "Aceptadas"],
+          ["rechazadas", "Rechazadas/Canceladas"],
+          ["finalizada", "Finalizadas"]
+        ].map(([value, label]) => (
+          <button className={`request-filter-chip ${statusFilter === value ? "active" : ""}`} type="button" onClick={() => setStatusFilter(value)} aria-pressed={statusFilter === value} key={value}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <section className="stack tutor-dashboard-list" aria-label="Lista de solicitudes recibidas">
         {solicitudes.length === 0 ? (
           <div className="state-card">
-            <h2>Aun no tienes solicitudes.</h2>
-            <p>Cuando un estudiante reserve un bloque aparecera aqui.</p>
+            <h2>No tienes solicitudes recibidas todavía.</h2>
+            <p>Cuando un estudiante solicite una tutoría, aparecerá aquí.</p>
+          </div>
+        ) : filteredSolicitudes.length === 0 ? (
+          <div className="state-card">
+            <h2>No hay solicitudes en este estado.</h2>
           </div>
         ) : (
-          solicitudes.map((solicitud) => {
+          filteredSolicitudes.map((solicitud) => {
             const actionable = solicitud.estado === "pendiente";
+            const titleId = `tutor-request-${solicitud.id}-title`;
             return (
-              <article className="card" key={solicitud.id}>
-                <div className="card-header">
+              <article className={`card tutor-request-card request-${solicitud.estado}`} aria-labelledby={titleId} key={solicitud.id}>
+                <div className="card-header tutor-request-card-header">
                   <div>
-                    <h2>{student(solicitud.estudiante_id)}</h2>
-                    <p>{materia(solicitud.materia_id)} · {formatDateTime(solicitud.fecha_reunion)}</p>
+                    <h2 id={titleId}>{student(solicitud.estudiante_id)}</h2>
+                    <div className="request-meta-grid" aria-label="Detalles de la solicitud recibida">
+                      <span>{materia(solicitud.materia_id)}</span>
+                      <span>{formatDateTime(solicitud.fecha_reunion)}</span>
+                    </div>
                   </div>
                   <StatusBadge status={solicitud.estado} />
                 </div>
-                <div className="card-actions">
-                  <button className="btn primary" disabled={!actionable} onClick={() => updateStatus(solicitud.id, "aceptada")}>
+                <div className="card-actions tutor-request-actions">
+                  <button className="btn tutor-accept-button" type="button" disabled={!actionable} onClick={() => updateStatus(solicitud.id, "aceptada")}>
                     Aceptar
                   </button>
-                  <button className="btn subtle" disabled={!actionable} onClick={() => updateStatus(solicitud.id, "rechazada")}>
+                  <button className="btn tutor-reject-button" type="button" disabled={!actionable} onClick={() => updateStatus(solicitud.id, "rechazada")}>
                     Rechazar
                   </button>
                 </div>

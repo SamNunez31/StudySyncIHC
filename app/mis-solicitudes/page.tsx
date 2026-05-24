@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AccessDenied, LoadingState } from "@/components/AccessDenied";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTime } from "@/lib/constants";
@@ -17,13 +17,19 @@ export default function MyRequestsPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [materias, setMaterias] = useState<Materia[]>([]);
   const [reviewedIds, setReviewedIds] = useState<Set<number>>(new Set());
+  const [requestsLoading, setRequestsLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("todos");
   const [cancelTarget, setCancelTarget] = useState<Solicitud | null>(null);
   const [motivo, setMotivo] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!auth.userId) return;
+    if (!auth.userId) {
+      setRequestsLoading(false);
+      return;
+    }
+    setRequestsLoading(true);
     getStudentRequests(auth.userId).then(async ({ solicitudes, error }) => {
       setSolicitudes(solicitudes);
       setProfiles(await getProfilesByIds([...new Set(solicitudes.map((item) => item.tutor_id))]));
@@ -34,15 +40,35 @@ export default function MyRequestsPage() {
           .eq("estudiante_id", auth.userId)
           .in("solicitud_id", solicitudes.map((item) => item.id));
         setReviewedIds(new Set(((data ?? []) as Pick<Resena, "solicitud_id">[]).map((item) => item.solicitud_id)));
+      } else {
+        setReviewedIds(new Set());
       }
       const catalogs = await getCatalogs();
       setMaterias(catalogs.materias);
       setError(error || catalogs.error ? genericActionError : "");
+      setRequestsLoading(false);
       if (new URLSearchParams(window.location.search).get("sent")) {
         setMessage("Tu solicitud ha sido enviada. El tutor responderá en un plazo de 24 a 48 horas.");
       }
     });
   }, [auth.userId]);
+
+  const summary = useMemo(() => {
+    return {
+      pendiente: solicitudes.filter((item) => item.estado === "pendiente").length,
+      aceptada: solicitudes.filter((item) => item.estado === "aceptada").length,
+      rechazadasCanceladas: solicitudes.filter((item) => item.estado === "rechazada" || item.estado === "cancelada").length,
+      finalizada: solicitudes.filter((item) => item.estado === "finalizada").length
+    };
+  }, [solicitudes]);
+
+  const filteredSolicitudes = useMemo(() => {
+    if (statusFilter === "pendiente") return solicitudes.filter((item) => item.estado === "pendiente");
+    if (statusFilter === "aceptada") return solicitudes.filter((item) => item.estado === "aceptada");
+    if (statusFilter === "rechazadas") return solicitudes.filter((item) => item.estado === "rechazada" || item.estado === "cancelada");
+    if (statusFilter === "finalizada") return solicitudes.filter((item) => item.estado === "finalizada");
+    return solicitudes;
+  }, [solicitudes, statusFilter]);
 
   if (auth.loading) return <LoadingState />;
   if (auth.forbidden) return <AccessDenied />;
@@ -85,14 +111,53 @@ export default function MyRequestsPage() {
       </div>
       {message && <p className="success" aria-live="polite">{message}</p>}
       {error && <p className="error" aria-live="assertive">{error}</p>}
+      <section className="requests-summary" aria-label="Resumen de solicitudes por estado" aria-live="polite">
+        <article className="request-stat-card pending">
+          <strong>{summary.pendiente}</strong>
+          <span>Pendientes</span>
+        </article>
+        <article className="request-stat-card accepted">
+          <strong>{summary.aceptada}</strong>
+          <span>Aceptadas</span>
+        </article>
+        <article className="request-stat-card rejected">
+          <strong>{summary.rechazadasCanceladas}</strong>
+          <span>Rechazadas / Canceladas</span>
+        </article>
+        <article className="request-stat-card finished">
+          <strong>{summary.finalizada}</strong>
+          <span>Finalizadas</span>
+        </article>
+      </section>
+      <div className="request-filter-bar" aria-label="Filtrar solicitudes por estado">
+        {[
+          ["todos", "Todos"],
+          ["pendiente", "Pendientes"],
+          ["aceptada", "Aceptadas"],
+          ["rechazadas", "Rechazadas/Canceladas"],
+          ["finalizada", "Finalizadas"]
+        ].map(([value, label]) => (
+          <button className={`request-filter-chip ${statusFilter === value ? "active" : ""}`} type="button" onClick={() => setStatusFilter(value)} aria-pressed={statusFilter === value} key={value}>
+            {label}
+          </button>
+        ))}
+      </div>
       <section className="stack requests-list" aria-label="Lista de solicitudes">
-        {solicitudes.length === 0 ? (
+        {requestsLoading ? (
+          <div className="state-card" aria-live="polite">
+            <h2>Cargando solicitudes...</h2>
+          </div>
+        ) : solicitudes.length === 0 ? (
           <div className="state-card">
             <h2>No tienes solicitudes todavía.</h2>
             <Link className="btn primary" href="/tutores">Buscar tutores</Link>
           </div>
+        ) : filteredSolicitudes.length === 0 ? (
+          <div className="state-card">
+            <h2>No hay solicitudes en este estado.</h2>
+          </div>
         ) : (
-          solicitudes.map((solicitud) => {
+          filteredSolicitudes.map((solicitud) => {
             const tutorProfile = tutor(solicitud.tutor_id);
             const tutorName = tutorProfile?.full_name ?? "Tutor";
             const titleId = `solicitud-${solicitud.id}-title`;
