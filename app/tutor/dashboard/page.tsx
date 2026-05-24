@@ -62,7 +62,6 @@ export default function TutorDashboardPage() {
     return materias.find((item) => item.id === id)?.nombre ?? "Materia";
   }
 
-  // Una solicitud se considera finalizada cuando su fecha ya pasó y está aceptada
   function isCompleted(solicitud: Solicitud) {
     return (solicitud.estado === "aceptada" || solicitud.estado === "finalizada" || solicitud.estado === "completada")
       && new Date(solicitud.fecha_reunion) < new Date();
@@ -161,6 +160,13 @@ export default function TutorDashboardPage() {
                   </div>
                   <StatusBadge status={solicitud.estado} />
                 </div>
+
+                {/* Mensaje del estudiante */}
+                {solicitud.mensaje && (
+                  <p className="request-note" style={{ marginTop: "0.75rem" }}>
+                    💬 <strong>Mensaje:</strong> {solicitud.mensaje}
+                  </p>
+                )}
 
                 {/* Estado de la tutoría */}
                 {solicitud.estado === "aceptada" && !completed && (

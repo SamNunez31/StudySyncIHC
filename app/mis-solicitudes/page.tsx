@@ -266,21 +266,63 @@ export default function MyRequestsPage() {
 
       {cancelTarget && (
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="cancel-title" aria-describedby="cancel-description">
-          <div className="modal-box stack cancel-modal-box">
-            <h2 id="cancel-title">Confirmar cancelación</h2>
-            <p id="cancel-description">Esta acción actualizará la solicitud como cancelada.</p>
-            <label>
-              Motivo opcional
+          <div className="modal-box stack cancel-modal-box" style={{ borderRadius: "24px", padding: "2rem", border: "1px solid #EDE9FE", boxShadow: "0 30px 80px rgba(6,3,30,0.25)" }}>
+            
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "4px" }}>
+              <div style={{
+                width: "44px", height: "44px", borderRadius: "12px",
+                background: "#FEF2F2", border: "1px solid #FECACA",
+                display: "grid", placeItems: "center",
+                color: "#b91c1c", fontSize: "1.3rem", flexShrink: 0
+              }}>✕</div>
+              <h2 id="cancel-title" style={{ margin: 0, fontSize: "1.3rem", color: "#17132a" }}>
+                ¿Cancelar esta tutoría?
+              </h2>
+            </div>
+
+            <div style={{
+              padding: "12px 14px",
+              borderRadius: "12px",
+              background: "#F5F3FF",
+              border: "1px solid #DDD6FE",
+              fontSize: "0.9rem",
+              color: "#4C1D95"
+            }}>
+              <strong>{profiles.find(p => p.id === cancelTarget.tutor_id)?.full_name ?? "Tutor"}</strong>
+              {" — "}
+              {formatDateTime(cancelTarget.fecha_reunion)}
+            </div>
+
+            <p id="cancel-description" style={{ margin: 0, color: "#667085", fontSize: "0.9rem" }}>
+              Esta acción no se puede deshacer. El tutor será notificado de la cancelación.
+            </p>
+
+            <label style={{ display: "grid", gap: "6px", color: "#17132a", fontWeight: 700, fontSize: "0.9rem" }}>
+              Motivo (opcional)
               <textarea
                 value={motivo}
                 maxLength={300}
                 onChange={(event) => setMotivo(event.target.value.slice(0, 300))}
-                aria-describedby="cancel-description"
+                placeholder="Ej: Ya no puedo en ese horario."
+                style={{ borderRadius: "12px", border: "1.5px solid #DDD6FE", padding: "10px 12px", fontFamily: "inherit", minHeight: "80px", resize: "vertical" }}
               />
             </label>
-            <div className="card-actions">
-              <button className="btn danger" type="button" onClick={cancelRequest}>Confirmar cancelación</button>
-              <button className="btn subtle" type="button" onClick={() => setCancelTarget(null)}>Volver</button>
+
+            <div className="card-actions" style={{ justifyContent: "flex-end", gap: "10px" }}>
+              <button className="btn subtle" type="button" onClick={() => { setCancelTarget(null); setMotivo(""); }}>
+                Volver
+              </button>
+              <button
+                type="button"
+                onClick={cancelRequest}
+                style={{
+                  padding: "10px 20px", borderRadius: "10px", border: 0,
+                  background: "#b91c1c", color: "#fff",
+                  fontWeight: 700, fontSize: "0.9rem", cursor: "pointer"
+                }}
+              >
+                Sí, cancelar tutoría
+              </button>
             </div>
           </div>
         </div>
