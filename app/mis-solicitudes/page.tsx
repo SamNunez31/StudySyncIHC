@@ -111,6 +111,7 @@ export default function MyRequestsPage() {
       </div>
       {message && <p className="success" aria-live="polite">{message}</p>}
       {error && <p className="error" aria-live="assertive">{error}</p>}
+
       <section className="requests-summary" aria-label="Resumen de solicitudes por estado" aria-live="polite">
         <article className="request-stat-card pending">
           <strong>{summary.pendiente}</strong>
@@ -129,6 +130,7 @@ export default function MyRequestsPage() {
           <span>Finalizadas</span>
         </article>
       </section>
+
       <div className="request-filter-bar" aria-label="Filtrar solicitudes por estado">
         {[
           ["todos", "Todos"],
@@ -137,11 +139,18 @@ export default function MyRequestsPage() {
           ["rechazadas", "Rechazadas/Canceladas"],
           ["finalizada", "Finalizadas"]
         ].map(([value, label]) => (
-          <button className={`request-filter-chip ${statusFilter === value ? "active" : ""}`} type="button" onClick={() => setStatusFilter(value)} aria-pressed={statusFilter === value} key={value}>
+          <button
+            className={`request-filter-chip ${statusFilter === value ? "active" : ""}`}
+            type="button"
+            onClick={() => setStatusFilter(value)}
+            aria-pressed={statusFilter === value}
+            key={value}
+          >
             {label}
           </button>
         ))}
       </div>
+
       <section className="stack requests-list" aria-label="Lista de solicitudes">
         {requestsLoading ? (
           <div className="state-card" aria-live="polite">
@@ -166,7 +175,11 @@ export default function MyRequestsPage() {
             const hasReview = reviewedIds.has(solicitud.id);
             const canReview = reviewEligibleStatus && !hasReview;
             return (
-              <article className={`card request-card request-${solicitud.estado}`} aria-labelledby={titleId} key={solicitud.id}>
+              <article
+                className={`card request-card request-${solicitud.estado}`}
+                aria-labelledby={titleId}
+                key={solicitud.id}
+              >
                 <div className="card-header request-card-header">
                   <div>
                     <h2 id={titleId}>{tutorName}</h2>
@@ -177,25 +190,68 @@ export default function MyRequestsPage() {
                   </div>
                   <StatusBadge status={solicitud.estado} />
                 </div>
+
                 {solicitud.estado === "aceptada" ? (
-                  <p className="request-note success">Tu solicitud fue aceptada. Ahora puedes contactar a tu tutor por WhatsApp: {tutorProfile?.whatsapp ?? "No registrado"}.</p>
+                  <p className="request-note success">
+                    ✓ Solicitud aceptada — WhatsApp: <strong>{tutorProfile?.whatsapp ?? "No registrado"}</strong>
+                  </p>
                 ) : solicitud.estado === "rechazada" ? (
-                  <p className="request-note error">Tu solicitud fue rechazada. Puedes buscar otros tutores disponibles.</p>
+                  <p className="request-note error">
+                    Tu solicitud fue rechazada. Puedes buscar otros tutores disponibles.
+                  </p>
                 ) : (
-                  <p className="request-note">El contacto se desbloquea cuando el tutor acepta la solicitud.</p>
+                  <p className="request-note">
+                    El contacto se desbloquea cuando el tutor acepta la solicitud.
+                  </p>
                 )}
+
                 <div className="card-actions request-actions-row">
-                  {canCancel && <button className="btn danger" type="button" onClick={() => setCancelTarget(solicitud)} aria-label={`Cancelar solicitud con ${tutorName}`}>Cancelar</button>}
-                  {canReview && <Link className="btn subtle" href={`/resena/${solicitud.id}`} aria-label={`Agregar reseña para la tutoría con ${tutorName}`}>Agregar reseña</Link>}
+                  {canCancel && (
+                    <button
+                      type="button"
+                      onClick={() => setCancelTarget(solicitud)}
+                      aria-label={`Cancelar solicitud con ${tutorName}`}
+                      className="btn danger"
+                      style={{ gap: "8px", padding: "8px 16px", fontSize: "0.88rem" }}
+                    >
+                      Cancelar solicitud
+                    </button>
+                  )}
+                  {canReview && (
+                    <Link
+                      href={`/resena/${solicitud.id}`}
+                      aria-label={`Agregar reseña para la tutoría con ${tutorName}`}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "8px 20px",
+                        borderRadius: "8px",
+                        border: "1.5px solid #C4B5FD",
+                        background: "#EDE9FE",
+                        color: "#4C1D95",
+                        fontWeight: 700,
+                        fontSize: "0.88rem",
+                        textDecoration: "none",
+                        transition: "all 0.18s ease"
+                      }}
+                    >
+                      ★ Agregar reseña
+                    </Link>
+                  )}
                 </div>
+
                 {reviewEligibleStatus && hasReview && (
-                  <p className="tutor-muted">Ya enviaste una reseña para esta tutoría.</p>
+                  <p className="tutor-muted" style={{ marginTop: "0.75rem", fontSize: "0.85rem" }}>
+                    ✓ Ya enviaste una reseña para esta tutoría.
+                  </p>
                 )}
               </article>
             );
           })
         )}
       </section>
+
       {cancelTarget && (
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="cancel-title" aria-describedby="cancel-description">
           <div className="modal-box stack cancel-modal-box">
@@ -203,10 +259,15 @@ export default function MyRequestsPage() {
             <p id="cancel-description">Esta acción actualizará la solicitud como cancelada.</p>
             <label>
               Motivo opcional
-              <textarea value={motivo} maxLength={300} onChange={(event) => setMotivo(event.target.value.slice(0, 300))} aria-describedby="cancel-description" />
+              <textarea
+                value={motivo}
+                maxLength={300}
+                onChange={(event) => setMotivo(event.target.value.slice(0, 300))}
+                aria-describedby="cancel-description"
+              />
             </label>
             <div className="card-actions">
-              <button className="btn danger" type="button" onClick={cancelRequest}>Confirmar</button>
+              <button className="btn danger" type="button" onClick={cancelRequest}>Confirmar cancelación</button>
               <button className="btn subtle" type="button" onClick={() => setCancelTarget(null)}>Volver</button>
             </div>
           </div>

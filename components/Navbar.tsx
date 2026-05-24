@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { BookOpen, LayoutDashboard, LogIn, LogOut, Search, UserRound, X } from "lucide-react";
 import { getCurrentProfile, signOut } from "@/lib/data";
+import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/types";
 
 export function Navbar() {
@@ -21,6 +22,17 @@ export function Navbar() {
     getCurrentProfile()
       .then(({ profile }) => setProfile(profile))
       .finally(() => setAuthReady(true));
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        getCurrentProfile().then(({ profile }) => setProfile(profile));
+      } else {
+        setProfile(null);
+      }
+      setAuthReady(true);
+    });
+
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -89,8 +101,14 @@ export function Navbar() {
         </div>
         {profile && (
           <div className="nav-actions">
-            <button className="logout-button" type="button" onClick={() => setConfirmSignOut(true)} aria-label="Cerrar sesión" title="Cerrar sesión">
-              <LogOut size={18} aria-hidden="true" />
+            <button
+              className="btn danger"
+              type="button"
+              onClick={() => setConfirmSignOut(true)}
+              style={{ gap: "8px", padding: "8px 16px", fontSize: "0.9rem" }}
+            >
+              <LogOut size={16} aria-hidden="true" />
+              Cerrar sesión
             </button>
           </div>
         )}

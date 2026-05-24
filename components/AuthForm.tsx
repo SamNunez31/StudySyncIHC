@@ -7,6 +7,8 @@ import {
   BookOpen,
   BriefcaseBusiness,
   Camera,
+  Eye,
+  EyeOff,
   GraduationCap,
   Lock,
   Mail,
@@ -84,6 +86,35 @@ function translateAuthError(message?: string) {
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function PasswordInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  const [show, setShow] = useState(false);
+  return (
+    <span style={{ position: "relative", display: "grid" }}>
+      <input {...props} type={show ? "text" : "password"} style={{ paddingRight: "44px" }} />
+      <button
+        type="button"
+        onClick={() => setShow((v) => !v)}
+        aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"}
+        style={{
+          position: "absolute",
+          right: "12px",
+          top: "50%",
+          transform: "translateY(-50%)",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: "#706a86",
+          padding: "4px",
+          display: "flex",
+          alignItems: "center"
+        }}
+      >
+        {show ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+      </button>
+    </span>
+  );
 }
 
 export function AuthForm({
@@ -433,7 +464,6 @@ export function AuthForm({
               <div className="study-avatar-picker">
                 <div className="study-avatar-preview" aria-label="Vista previa de foto de perfil">
                   {avatarPreview ? (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img src={avatarPreview} alt="Foto de perfil seleccionada" />
                   ) : (
                     <UserRound size={34} aria-hidden="true" />
@@ -451,31 +481,31 @@ export function AuthForm({
               </div>
 
               <Field id="fullName" label="Nombre completo" icon={<UserRound size={18} aria-hidden="true" />} error={errors.fullName} valid={Boolean(touched.fullName && !errors.fullName && form.fullName)}>
-                <input id="fullName" value={form.fullName} onChange={(event) => updateField("fullName", event.target.value)} onBlur={() => blurField("fullName")} placeholder="Ej: Sam Nuñez" autoComplete="name" aria-invalid={Boolean(errors.fullName)} />
+                <input id="fullName" value={form.fullName} onChange={(e) => updateField("fullName", e.target.value)} onBlur={() => blurField("fullName")} placeholder="Ej: Sam Nuñez" autoComplete="name" aria-invalid={Boolean(errors.fullName)} />
               </Field>
             </>
           )}
 
           <Field id="email" label="Correo electrónico" icon={<Mail size={18} aria-hidden="true" />} error={errors.email} valid={Boolean(touched.email && !errors.email && form.email)}>
-            <input id="email" type="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} onBlur={() => blurField("email")} placeholder="Ej: sam@gmail.com" autoComplete="email" aria-invalid={Boolean(errors.email)} />
+            <input id="email" type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} onBlur={() => blurField("email")} placeholder="Ej: sam@gmail.com" autoComplete="email" aria-invalid={Boolean(errors.email)} />
           </Field>
 
           <Field id="password" label="Contraseña" icon={<Lock size={18} aria-hidden="true" />} error={errors.password} valid={Boolean(touched.password && !errors.password && form.password)}>
-            <input id="password" type="password" value={form.password} onChange={(event) => updateField("password", event.target.value)} onBlur={() => blurField("password")} placeholder="Mínimo 8 caracteres" autoComplete={isRegister ? "new-password" : "current-password"} aria-invalid={Boolean(errors.password)} />
+            <PasswordInput id="password" value={form.password} onChange={(e) => updateField("password", e.target.value)} onBlur={() => blurField("password")} placeholder="Mínimo 8 caracteres" autoComplete={isRegister ? "new-password" : "current-password"} aria-invalid={Boolean(errors.password)} />
           </Field>
 
           {isRegister && (
             <>
               <Field id="confirmPassword" label="Confirmar contraseña" icon={<Lock size={18} aria-hidden="true" />} error={errors.confirmPassword} valid={Boolean(touched.confirmPassword && !errors.confirmPassword && form.confirmPassword)}>
-                <input id="confirmPassword" type="password" value={form.confirmPassword} onChange={(event) => updateField("confirmPassword", event.target.value)} onBlur={() => blurField("confirmPassword")} placeholder="Repite tu contraseña" autoComplete="new-password" aria-invalid={Boolean(errors.confirmPassword)} />
+                <PasswordInput id="confirmPassword" value={form.confirmPassword} onChange={(e) => updateField("confirmPassword", e.target.value)} onBlur={() => blurField("confirmPassword")} placeholder="Repite tu contraseña" autoComplete="new-password" aria-invalid={Boolean(errors.confirmPassword)} />
               </Field>
 
               <div className="study-auth-grid">
                 <Field id="carrera" label="Carrera" icon={<BriefcaseBusiness size={18} aria-hidden="true" />} error={errors.carrera} valid={Boolean(touched.carrera && !errors.carrera && form.carrera)}>
-                  <input id="carrera" value={form.carrera} onChange={(event) => updateField("carrera", event.target.value)} onBlur={() => blurField("carrera")} placeholder="Ej: Ingeniería en Sistemas" aria-invalid={Boolean(errors.carrera)} />
+                  <input id="carrera" value={form.carrera} onChange={(e) => updateField("carrera", e.target.value)} onBlur={() => blurField("carrera")} placeholder="Ej: Ingeniería en Sistemas" aria-invalid={Boolean(errors.carrera)} />
                 </Field>
                 <Field id="semestre" label="Semestre" icon={<GraduationCap size={18} aria-hidden="true" />} error={errors.semestre} valid={Boolean(touched.semestre && !errors.semestre && form.semestre)}>
-                  <input id="semestre" type="number" min="1" max="10" value={form.semestre} onChange={(event) => updateField("semestre", event.target.value)} onBlur={() => blurField("semestre")} placeholder="Ej: 5" aria-invalid={Boolean(errors.semestre)} />
+                  <input id="semestre" type="number" min="1" max="10" value={form.semestre} onChange={(e) => updateField("semestre", e.target.value)} onBlur={() => blurField("semestre")} placeholder="Ej: 5" aria-invalid={Boolean(errors.semestre)} />
                 </Field>
               </div>
 
@@ -493,11 +523,11 @@ export function AuthForm({
               {role === "tutor" && (
                 <section className="study-tutor-extra" aria-label="Datos de tutor">
                   <Field id="whatsapp" label="WhatsApp" icon={<MessageCircle size={18} aria-hidden="true" />} error={errors.whatsapp} valid={Boolean(touched.whatsapp && !errors.whatsapp && form.whatsapp)}>
-                    <input id="whatsapp" value={form.whatsapp} onChange={(event) => updateField("whatsapp", event.target.value)} onBlur={() => blurField("whatsapp")} inputMode="tel" placeholder="Ej: 0991234567" maxLength={10} aria-invalid={Boolean(errors.whatsapp)} />
+                    <input id="whatsapp" value={form.whatsapp} onChange={(e) => updateField("whatsapp", e.target.value)} onBlur={() => blurField("whatsapp")} inputMode="tel" placeholder="Ej: 0991234567" maxLength={10} aria-invalid={Boolean(errors.whatsapp)} />
                   </Field>
 
                   <Field id="bio" label="Bio" error={errors.bio} valid={Boolean(touched.bio && !errors.bio && form.bio)}>
-                    <textarea id="bio" value={form.bio} onChange={(event) => updateField("bio", event.target.value)} onBlur={() => blurField("bio")} placeholder="Ej: Ayudo en Programación I, bases de datos y ejercicios prácticos." maxLength={250} aria-invalid={Boolean(errors.bio)} />
+                    <textarea id="bio" value={form.bio} onChange={(e) => updateField("bio", e.target.value)} onBlur={() => blurField("bio")} placeholder="Ej: Ayudo en Programación I, bases de datos y ejercicios prácticos." maxLength={250} aria-invalid={Boolean(errors.bio)} />
                     <span className="study-char-count">{form.bio.length}/250</span>
                   </Field>
 
@@ -510,9 +540,7 @@ export function AuthForm({
                       <div className="study-schedule-grid" role="grid" aria-label="Horarios de preferencia">
                         <div className="study-schedule-head">Hora</div>
                         {dayOptions.map((day) => (
-                          <div className="study-schedule-head" key={day.value}>
-                            {day.label}
-                          </div>
+                          <div className="study-schedule-head" key={day.value}>{day.label}</div>
                         ))}
                         {scheduleRows.map((row) => (
                           <div className="study-schedule-row" key={row.start}>

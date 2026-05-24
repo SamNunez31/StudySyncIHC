@@ -796,9 +796,10 @@ textarea {
 
 .requests-page .status.aceptada,
 .tutor-dashboard-page .status.aceptada {
-  color: #065F46;
-  background: #D1FAE5;
-  border: 1px solid #A7F3D0;
+  color: #064E3B;
+  background: #6EE7B7;
+  border: 1px solid #34D399;
+  font-weight: 700;
 }
 
 .requests-page .status.rechazada,
@@ -1839,6 +1840,7 @@ textarea {
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
+  min-height: calc(100vh - 78px);
 }
 
 .home-hero-copy::before {

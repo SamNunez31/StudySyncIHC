@@ -59,9 +59,15 @@ export default function TutorProfilePage() {
   }, [id]);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setCurrentUserId(data.user?.id ?? null);
+    supabase.auth.getSession().then(({ data }) => {
+      setCurrentUserId(data.session?.user?.id ?? null);
     });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUserId(session?.user?.id ?? null);
+    });
+
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   const promedio = resenas.length
@@ -273,7 +279,7 @@ export default function TutorProfilePage() {
           <ProfileAvailabilityCalendar disponibilidad={disponibilidad} />
         </article>
 
-        <article className="tutor-info-card">
+        <article className="tutor-info-card" style={{ gridColumn: "1 / -1" }}>
           <h2>Reseñas</h2>
           {resenas.length === 0 ? (
             <p>No hay reseñas todavía para este tutor.</p>
