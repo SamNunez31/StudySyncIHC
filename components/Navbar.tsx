@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { BookOpen, CalendarDays, LayoutDashboard, LogOut, Search, UserRound, X } from "lucide-react";
+import { BookOpen, LayoutDashboard, LogIn, LogOut, Search, UserRound, X } from "lucide-react";
 import { getCurrentProfile, signOut } from "@/lib/data";
 import type { Profile } from "@/lib/types";
 
 export function Navbar() {
   const pathname = usePathname();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [message, setMessage] = useState("");
@@ -17,7 +18,9 @@ export function Navbar() {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
-    getCurrentProfile().then(({ profile }) => setProfile(profile));
+    getCurrentProfile()
+      .then(({ profile }) => setProfile(profile))
+      .finally(() => setAuthReady(true));
   }, []);
 
   useEffect(() => {
@@ -51,6 +54,7 @@ export function Navbar() {
   }
 
   const hideTutorsLink = pathname.startsWith("/tutor/") && pathname !== "/tutor/dashboard" && pathname !== "/tutor/perfil";
+  const isCurrentPath = (href: string) => pathname === href;
 
   return (
     <header className="nav-wrap">
@@ -63,40 +67,43 @@ export function Navbar() {
         </Link>
         <div className="nav-links">
           {!hideTutorsLink && (
-            <Link href="/tutores">
+            <Link href="/tutores" aria-current={isCurrentPath("/tutores") ? "page" : undefined}>
               <Search size={18} aria-hidden="true" /> Tutores
             </Link>
           )}
           {profile?.role === "estudiante" && (
-            <Link href="/mis-solicitudes">
+            <Link href="/mis-solicitudes" aria-current={isCurrentPath("/mis-solicitudes") ? "page" : undefined}>
               <BookOpen size={18} aria-hidden="true" /> Mis solicitudes
             </Link>
           )}
           {profile?.role === "tutor" && (
-            <>
-              <Link href="/tutor/dashboard">
-                <LayoutDashboard size={18} aria-hidden="true" /> Dashboard
-              </Link>
-              <Link href="/panel/disponibilidad">
-                <CalendarDays size={18} aria-hidden="true" /> Disponibilidad
-              </Link>
-            </>
+            <Link href="/tutor/dashboard" aria-current={isCurrentPath("/tutor/dashboard") ? "page" : undefined}>
+              <LayoutDashboard size={18} aria-hidden="true" /> Dashboard tutor
+            </Link>
           )}
         </div>
         {profile && (
           <div className="nav-actions">
-            <Link href={profile.role === "tutor" ? "/tutor/perfil" : "/mis-solicitudes"} className="icon-link">
+            <Link href="/mi-perfil" className="icon-link" aria-current={isCurrentPath("/mi-perfil") ? "page" : undefined}>
               <UserRound size={18} aria-hidden="true" />
-              <span>{profile.full_name ?? "Perfil"}</span>
+              <span>Mi Perfil</span>
             </Link>
-            <button className="logout-button" onClick={() => setConfirmSignOut(true)} aria-label="Cerrar sesión" title="Cerrar sesión">
+            <button className="logout-button" type="button" onClick={() => setConfirmSignOut(true)} aria-label="Cerrar sesión" title="Cerrar sesión">
               <LogOut size={18} aria-hidden="true" />
             </button>
           </div>
         )}
+        {authReady && !profile && (
+          <div className="nav-actions">
+            <Link href="/login" className="icon-link">
+              <LogIn size={18} aria-hidden="true" />
+              <span>Iniciar sesión</span>
+            </Link>
+          </div>
+        )}
       </nav>
       {confirmSignOut && (
-        <div className="signout-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="signout-title">
+        <div className="signout-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="signout-title" aria-describedby="signout-description">
           <section className="signout-modal">
             <button className="signout-close" type="button" onClick={closeSignOutModal} disabled={signingOut} aria-label="Cerrar modal" ref={closeButtonRef}>
               <X size={18} aria-hidden="true" />
@@ -105,7 +112,7 @@ export function Navbar() {
               <LogOut size={24} />
             </div>
             <h2 id="signout-title">¿Seguro que deseas cerrar sesión?</h2>
-            <p>Tu sesión actual se cerrará y tendrás que volver a iniciar sesión para continuar.</p>
+            <p id="signout-description">Tu sesión actual se cerrará y tendrás que volver a iniciar sesión para continuar.</p>
             {error && (
               <p className="signout-error" aria-live="assertive">
                 {error}

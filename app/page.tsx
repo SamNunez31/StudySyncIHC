@@ -13,7 +13,7 @@ export default function Home() {
       <section className="home-hero" aria-labelledby="home-title">
         <div className="home-hero-copy">
           <span className="home-badge">
-            <span aria-hidden="true" />
+            <span aria-hidden="true">✦</span>
             Mentorías entre estudiantes universitarios
           </span>
           <h1 id="home-title">Aprende de quien ya pasó por ahí</h1>
@@ -36,7 +36,7 @@ export default function Home() {
       </section>
 
       {authOpen && (
-        <div className="home-auth-modal" role="dialog" aria-modal="true" aria-label="Autenticación StudySync">
+        <div className="home-auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
           <AuthForm mode="login" embedded onClose={() => setAuthOpen(false)} />
         </div>
       )}

@@ -10,7 +10,8 @@ const labels: Record<string, string> = {
 };
 
 export function StatusBadge({ status }: { status: SolicitudEstado | string }) {
-  return <span className={`status ${status}`}>{labels[status] ?? status}</span>;
+  const label = labels[status] ?? status;
+  return <span className={`status ${status}`} aria-label={`Estado de la solicitud: ${label}`}>{label}</span>;
 }
 
 export function Rating({ value, count }: { value: number | null; count?: number }) {

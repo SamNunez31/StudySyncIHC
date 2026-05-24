@@ -118,7 +118,7 @@ export default function ReviewPage() {
 
         {!meetingFinished && <p className="error">La tutoría aún no ha finalizado.</p>}
         {existingReview && <p className="error">Ya enviaste una reseña para esta tutoría.</p>}
-        {error && <p className="error" aria-live="assertive">{error}</p>}
+        {error && <p className="error" role="alert" aria-live="assertive">{error}</p>}
         {success && <p className="success" aria-live="polite">{success}</p>}
 
         <form className="review-form" onSubmit={submit}>
@@ -131,6 +131,7 @@ export default function ReviewPage() {
                   className={rating >= value ? "selected" : ""}
                   onClick={() => setRating(value)}
                   aria-pressed={rating >= value}
+                  aria-label={`${value} estrella${value === 1 ? "" : "s"}`}
                   disabled={!canSubmit}
                   key={value}
                 >

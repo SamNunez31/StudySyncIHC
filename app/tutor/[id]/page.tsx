@@ -75,23 +75,22 @@ export default function TutorProfilePage() {
 
   const slotOptions = useMemo(() => {
     return disponibilidad
-      .map((item) => {
-        const start = normalizeTime(item.hora_inicio);
-        const end = normalizeTime(item.hora_fin);
-        const date = getNextDateForDay(item.dia_semana, start);
-        return {
-          key: `${item.id}-${date.toISOString()}`,
-          disponibilidadId: item.id,
-          day: item.dia_semana,
-          start,
-          end,
-          date
-        };
-      })
+      .flatMap((item) => splitAvailabilityIntoHourlySlots(item))
       .filter((slot) => !isSlotOccupied(slot, solicitudes))
       .sort((a, b) => a.date.getTime() - b.date.getTime())
       .slice(0, 10);
   }, [disponibilidad, solicitudes]);
+
+  const groupedSlotOptions = useMemo(() => {
+    const groups = new Map<string, { label: string; slots: SlotOption[] }>();
+    slotOptions.forEach((slot) => {
+      const key = slot.date.toDateString();
+      const current = groups.get(key) ?? { label: formatSlotGroupDate(slot.date), slots: [] };
+      current.slots.push(slot);
+      groups.set(key, current);
+    });
+    return Array.from(groups.entries()).map(([key, group]) => ({ key, ...group }));
+  }, [slotOptions]);
 
   const selectedSlot = slotOptions.find((slot) => slot.key === selectedSlotKey) ?? null;
   const selectedExperience = experiencias.find((item) => String(item.materia_id) === selectedMateriaId) ?? null;
@@ -215,10 +214,10 @@ export default function TutorProfilePage() {
 
       <section className="tutor-profile-hero">
         <div className="tutor-profile-identity">
-          <div className="tutor-profile-avatar" aria-hidden="true">
+          <div className="tutor-profile-avatar" role="img" aria-label={`Avatar de ${profile.full_name ?? "tutor"}`}>
             {profile.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={profile.avatar_url} alt="" />
+              <img src={profile.avatar_url} alt={`Foto de perfil de ${profile.full_name ?? "tutor"}`} />
             ) : (
               initials(profile.full_name)
             )}
@@ -295,15 +294,22 @@ export default function TutorProfilePage() {
       </section>
 
       {modalOpen && (
-        <div className="request-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="request-title">
+        <div className="request-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="request-title" aria-describedby="request-description">
           <section className="request-modal">
-            <button className="request-modal-close" type="button" onClick={closeRequestModal} aria-label="Cerrar">
+            <p id="request-description" className="sr-only">Selecciona la materia, el horario y envía un mensaje opcional.</p>
+            <button className="request-modal-close" type="button" onClick={closeRequestModal} aria-label="Cerrar modal">
               <X size={20} aria-hidden="true" />
             </button>
             <div className="request-modal-heading">
               <h2 id="request-title">Solicitar tutoría con {profile.full_name ?? "este tutor"}</h2>
               <p>Selecciona la materia, el horario y envía un mensaje opcional.</p>
             </div>
+
+            {!currentUserId && (
+              <div className="request-login-notice" aria-live="polite">
+                <span>Inicia sesión para solicitar una tutoría.</span>
+              </div>
+            )}
 
             <label className="request-field">
               Materia
@@ -322,23 +328,30 @@ export default function TutorProfilePage() {
                 <p className="tutor-muted">No hay horarios disponibles por ahora.</p>
               ) : (
                 <div className="request-slot-grid" role="list">
-                  {slotOptions.map((slot) => {
-                    const selected = selectedSlotKey === slot.key;
-                    return (
-                      <button
-                        className={`request-slot-card ${selected ? "selected" : ""}`}
-                        type="button"
-                        onClick={() => setSelectedSlotKey(slot.key)}
-                        aria-pressed={selected}
-                        key={slot.key}
-                      >
-                        <span>{formatSlotDay(slot.date)}</span>
-                        <strong>{formatSlotDate(slot.date)}</strong>
-                        <small>{slot.start} → {slot.end}</small>
-                        <em>{selected ? <><Check size={14} aria-hidden="true" /> Seleccionado</> : "Disponible"}</em>
-                      </button>
-                    );
-                  })}
+                  {groupedSlotOptions.map((group) => (
+                    <div className="request-slot-day-group" role="listitem" key={group.key}>
+                      <h3 className="request-slot-day-title">{group.label}</h3>
+                      <div className="request-slot-buttons">
+                        {group.slots.map((slot) => {
+                          const selected = selectedSlotKey === slot.key;
+                          return (
+                            <button
+                              className={`request-slot-card ${selected ? "selected" : ""}`}
+                              type="button"
+                              onClick={() => setSelectedSlotKey(slot.key)}
+                              aria-pressed={selected}
+                              aria-selected={selected}
+                              aria-label={`Seleccionar ${group.label} de ${slot.start} a ${slot.end}`}
+                              key={slot.key}
+                            >
+                              <small>{slot.start} → {slot.end}</small>
+                              {selected && <em><Check size={14} aria-hidden="true" /> Seleccionado</em>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </section>
@@ -354,8 +367,8 @@ export default function TutorProfilePage() {
               <span className="request-counter">{requestMessage.length}/500</span>
             </label>
 
-            {modalError && <p className="request-error" aria-live="assertive">{modalError}</p>}
-            {modalMessage && <p className="request-success" aria-live="polite">{modalMessage}</p>}
+            {modalError && <p className="request-error" role="alert" aria-live="assertive">{modalError}</p>}
+            {modalMessage && currentUserId && <p className="request-success" aria-live="polite">{modalMessage}</p>}
 
             {!currentUserId && (
               <button className="btn subtle" type="button" onClick={() => router.push(`/login?redirect=/tutor/${id}`)}>
@@ -390,6 +403,39 @@ function normalizeDateTime(date: Date) {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
+function splitAvailabilityIntoHourlySlots(item: Disponibilidad): SlotOption[] {
+  const slots: SlotOption[] = [];
+  const start = normalizeTime(item.hora_inicio);
+  const end = normalizeTime(item.hora_fin);
+  const [startHour, startMinute] = start.split(":").map(Number);
+  const [endHour, endMinute] = end.split(":").map(Number);
+  let startMinutes = startHour * 60 + startMinute;
+  const endMinutes = endHour * 60 + endMinute;
+
+  while (startMinutes + 60 <= endMinutes) {
+    const slotStart = minutesToTime(startMinutes);
+    const slotEnd = minutesToTime(startMinutes + 60);
+    const date = getNextDateForDay(item.dia_semana, slotStart);
+    slots.push({
+      key: `${item.id}-${slotStart}-${date.toISOString()}`,
+      disponibilidadId: item.id,
+      day: item.dia_semana,
+      start: slotStart,
+      end: slotEnd,
+      date
+    });
+    startMinutes += 60;
+  }
+
+  return slots;
+}
+
+function minutesToTime(totalMinutes: number) {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
 function ProfileAvailabilityCalendar({ disponibilidad }: { disponibilidad: Disponibilidad[] }) {
   const availableKeys = useMemo(() => {
     const keys = new Set<string>();
@@ -408,6 +454,7 @@ function ProfileAvailabilityCalendar({ disponibilidad }: { disponibilidad: Dispo
     });
     return keys;
   }, [disponibilidad]);
+  const visibleTimeSlots = timeSlots.filter((slot) => days.some((day) => availableKeys.has(`${day.value}-${slot.start}-${slot.end}`)));
 
   return (
     <div className="profile-calendar" role="grid" aria-label="Disponibilidad semanal del tutor">
@@ -415,7 +462,7 @@ function ProfileAvailabilityCalendar({ disponibilidad }: { disponibilidad: Dispo
       {days.map((day) => (
         <div className="profile-calendar-head" key={day.value}>{day.label}</div>
       ))}
-      {timeSlots.map((slot) => (
+      {visibleTimeSlots.map((slot) => (
         <div className="profile-calendar-row" key={slot.label}>
           <div className="profile-calendar-time">{slot.label}</div>
           {days.map((day) => {
@@ -441,4 +488,13 @@ function formatSlotDay(date: Date) {
 
 function formatSlotDate(date: Date) {
   return new Intl.DateTimeFormat("es-EC", { day: "2-digit", month: "short" }).format(date).replace(".", "");
+}
+
+function formatSlotGroupDate(date: Date) {
+  const label = new Intl.DateTimeFormat("es-EC", {
+    weekday: "long",
+    day: "numeric",
+    month: "long"
+  }).format(date);
+  return label.charAt(0).toUpperCase() + label.slice(1);
 }

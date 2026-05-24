@@ -84,8 +84,8 @@ export default function MyRequestsPage() {
         <h1>Estado de tus tutorías</h1>
       </div>
       {message && <p className="success" aria-live="polite">{message}</p>}
-      {error && <p className="error">{error}</p>}
-      <section className="stack requests-list">
+      {error && <p className="error" aria-live="assertive">{error}</p>}
+      <section className="stack requests-list" aria-label="Lista de solicitudes">
         {solicitudes.length === 0 ? (
           <div className="state-card">
             <h2>No tienes solicitudes todavía.</h2>
@@ -94,17 +94,18 @@ export default function MyRequestsPage() {
         ) : (
           solicitudes.map((solicitud) => {
             const tutorProfile = tutor(solicitud.tutor_id);
+            const tutorName = tutorProfile?.full_name ?? "Tutor";
+            const titleId = `solicitud-${solicitud.id}-title`;
             const canCancel = ["pendiente", "aceptada"].includes(solicitud.estado) && new Date(solicitud.fecha_reunion) > new Date();
             const reviewEligibleStatus = ["aceptada", "finalizada"].includes(String(solicitud.estado));
-            const meetingPassed = new Date(solicitud.fecha_reunion) <= new Date();
             const hasReview = reviewedIds.has(solicitud.id);
-            const canReview = reviewEligibleStatus && meetingPassed && !hasReview;
+            const canReview = reviewEligibleStatus && !hasReview;
             return (
-              <article className="card request-card" key={solicitud.id}>
+              <article className={`card request-card request-${solicitud.estado}`} aria-labelledby={titleId} key={solicitud.id}>
                 <div className="card-header request-card-header">
                   <div>
-                    <h2>{tutorProfile?.full_name ?? "Tutor"}</h2>
-                    <div className="request-meta-grid">
+                    <h2 id={titleId}>{tutorName}</h2>
+                    <div className="request-meta-grid" aria-label="Detalles de la solicitud">
                       <span>{materia(solicitud.materia_id)}</span>
                       <span>{formatDateTime(solicitud.fecha_reunion)}</span>
                     </div>
@@ -119,13 +120,10 @@ export default function MyRequestsPage() {
                   <p className="request-note">El contacto se desbloquea cuando el tutor acepta la solicitud.</p>
                 )}
                 <div className="card-actions request-actions-row">
-                  {canCancel && <button className="btn danger" onClick={() => setCancelTarget(solicitud)}>Cancelar</button>}
-                  {canReview && <Link className="btn subtle" href={`/resena/${solicitud.id}`}>Agregar reseña</Link>}
+                  {canCancel && <button className="btn danger" type="button" onClick={() => setCancelTarget(solicitud)} aria-label={`Cancelar solicitud con ${tutorName}`}>Cancelar</button>}
+                  {canReview && <Link className="btn subtle" href={`/resena/${solicitud.id}`} aria-label={`Agregar reseña para la tutoría con ${tutorName}`}>Agregar reseña</Link>}
                 </div>
-                {reviewEligibleStatus && !meetingPassed && (
-                  <p className="tutor-muted">Podrás dejar una reseña cuando la tutoría haya finalizado.</p>
-                )}
-                {reviewEligibleStatus && meetingPassed && hasReview && (
+                {reviewEligibleStatus && hasReview && (
                   <p className="tutor-muted">Ya enviaste una reseña para esta tutoría.</p>
                 )}
               </article>
@@ -134,17 +132,17 @@ export default function MyRequestsPage() {
         )}
       </section>
       {cancelTarget && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="cancel-title">
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="cancel-title" aria-describedby="cancel-description">
           <div className="modal-box stack cancel-modal-box">
             <h2 id="cancel-title">Confirmar cancelación</h2>
-            <p>Esta acción actualizará la solicitud como cancelada.</p>
+            <p id="cancel-description">Esta acción actualizará la solicitud como cancelada.</p>
             <label>
               Motivo opcional
-              <textarea value={motivo} maxLength={300} onChange={(event) => setMotivo(event.target.value.slice(0, 300))} />
+              <textarea value={motivo} maxLength={300} onChange={(event) => setMotivo(event.target.value.slice(0, 300))} aria-describedby="cancel-description" />
             </label>
             <div className="card-actions">
-              <button className="btn danger" onClick={cancelRequest}>Confirmar</button>
-              <button className="btn subtle" onClick={() => setCancelTarget(null)}>Volver</button>
+              <button className="btn danger" type="button" onClick={cancelRequest}>Confirmar</button>
+              <button className="btn subtle" type="button" onClick={() => setCancelTarget(null)}>Volver</button>
             </div>
           </div>
         </div>

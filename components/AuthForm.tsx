@@ -404,7 +404,7 @@ export function AuthForm({
             </span>
             StudySync
           </Link>
-          <button type="button" onClick={closeAuth} aria-label="Cerrar">
+          <button type="button" onClick={closeAuth} aria-label="Cerrar modal">
             <X size={20} aria-hidden="true" />
           </button>
         </div>
@@ -566,7 +566,7 @@ export function AuthForm({
           )}
 
           {errors.general && (
-            <p className="study-form-alert" aria-live="assertive">
+            <p className="study-form-alert" role="alert" aria-live="assertive">
               {errors.general}
             </p>
           )}
@@ -616,7 +616,7 @@ function Field({
         {children}
       </span>
       {error && (
-        <span className="study-field-error" aria-live="polite">
+        <span className="study-field-error" role="alert" aria-live="polite">
           {error}
         </span>
       )}

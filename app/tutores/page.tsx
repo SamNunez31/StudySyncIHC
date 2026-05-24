@@ -153,10 +153,10 @@ export default function TutorsPage() {
               key={tutor.profile.id}
             >
               <div className="tutor-row-main">
-                <div className="tutor-row-avatar">
+                <div className="tutor-row-avatar" role="img" aria-label={`Avatar de ${tutor.profile.full_name ?? "tutor"}`}>
                   {tutor.profile.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={tutor.profile.avatar_url} alt="" />
+                    <img src={tutor.profile.avatar_url} alt={`Foto de perfil de ${tutor.profile.full_name ?? "tutor"}`} />
                   ) : (
                     initials(tutor.profile.full_name)
                   )}
